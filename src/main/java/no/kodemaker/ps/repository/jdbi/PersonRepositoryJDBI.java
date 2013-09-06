@@ -1,7 +1,7 @@
 package no.kodemaker.ps.repository.jdbi;
 
-import no.kodemaker.ps.domain.Person;
-import no.kodemaker.ps.repository.PersonRepository;
+import no.kodemaker.ps.domain.JdbiPerson;
+import no.kodemaker.ps.repository.JdbiPersonRepository;
 import no.kodemaker.ps.repository.datasource.DataSourceProvider;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -9,11 +9,11 @@ import org.skife.jdbi.v2.Handle;
 import java.util.List;
 
 /**
- * A JBDI implementation of the {@link PersonRepository} interface.
+ * A JBDI implementation of the {@link no.kodemaker.ps.repository.JdbiPersonRepository} interface.
  *
  * @author Per Spilling
  */
-public class PersonRepositoryJDBI implements PersonRepository {
+public class PersonRepositoryJDBI implements JdbiPersonRepository {
 
     private DBI dbi;
 
@@ -34,8 +34,8 @@ public class PersonRepositoryJDBI implements PersonRepository {
         h.close();
     }
 
-    public Person getPerson(int id) {
-        Person person;
+    public JdbiPerson getPerson(int id) {
+        JdbiPerson person;
         try (Handle h = dbi.open()) {
             person = h.createQuery("select * from PERSON where id = :id").bind("id", id)
                     .map(PersonMapper.INSTANCE)
@@ -44,8 +44,8 @@ public class PersonRepositoryJDBI implements PersonRepository {
         return person;
     }
 
-    public List<Person> findByName(String name) {
-        List<Person> persons;
+    public List<JdbiPerson> findByName(String name) {
+        List<JdbiPerson> persons;
         try (Handle h = dbi.open()) {
             persons = h.createQuery("select * from PERSON where name like :name").bind("name", name)
                     .map(PersonMapper.INSTANCE)
@@ -54,7 +54,7 @@ public class PersonRepositoryJDBI implements PersonRepository {
         return persons;
     }
 
-    public void add(Person person) {
+    public void add(JdbiPerson person) {
         try (Handle h = dbi.open()) {
             h.createStatement("insert into PERSON (name, email, phone) values (:name, :email, :phone)")
                     .bind("name", person.getName())
@@ -64,8 +64,8 @@ public class PersonRepositoryJDBI implements PersonRepository {
         }
     }
 
-    public List<Person> listAll() {
-        List<Person> persons;
+    public List<JdbiPerson> listAll() {
+        List<JdbiPerson> persons;
         try (Handle h = dbi.open()) {
             persons = h.createQuery("select * from PERSON").map(PersonMapper.INSTANCE).list();
         }
