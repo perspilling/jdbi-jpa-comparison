@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+             version="2.0">
+
+    <persistence-unit name="jpa-ds" transaction-type="RESOURCE_LOCAL">
+        <!--jta-data-source>java:/jpaDS</jta-data-source-->
+        <class>no.kodemaker.ps.domain.JpaPerson</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <properties>
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.format_sql" value="true"/>
+
+            <!-- automatically create the DB schema -->
+            <property name="hibernate.hbm2ddl.auto" value="create"/>
+
+            <!--property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/-->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+
+            <property name="hibernate.connection.autocommit" value="true"/>
+
+            <!-- CamelCase classes are mapped to camel_case tables -->
+            <property name="hibernate.ejb.naming_strategy" value="org.hibernate.cfg.ImprovedNamingStrategy"/>
+        </properties>
+
+    </persistence-unit>
+
+</persistence>
