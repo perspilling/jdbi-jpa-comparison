@@ -1,10 +1,10 @@
 package no.kodemaker.ps.repository.jpa;
 
-import no.kodemaker.ps.domain.JdbiPerson;
 import no.kodemaker.ps.domain.JpaPerson;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.List;
@@ -17,13 +17,15 @@ import static org.junit.Assert.assertThat;
  */
 public class JpaPersonRepositoryTest {
     private static EntityManagerFactory emf = Persistence.createEntityManagerFactory("jpa-ds");
-
     private static PersonRepositoryJPA repo;
 
     @BeforeClass
     public static void init() {
-        repo = new PersonRepositoryJPA(emf.createEntityManager());
+        EntityManager entityManager = emf.createEntityManager();
+        repo = new PersonRepositoryJPA(entityManager);
+        entityManager.getTransaction().begin();
         populateDB();
+        entityManager.getTransaction().commit();
     }
 
     private static void populateDB() {
@@ -35,8 +37,16 @@ public class JpaPersonRepositoryTest {
 
     @Test
     public void retrieveAll() {
-        PersonRepositoryJPA repo = new PersonRepositoryJPA(emf.createEntityManager());
         List<JpaPerson> persons = repo.listAll();
         assertThat(persons.size(), equalTo(4));
+    }
+
+    @Test
+    public void findByName() {
+        List<JpaPerson> persons = repo.findByName("Larry");
+        assertThat(persons.size(), equalTo(1));
+
+        persons = repo.findByName("Pe%");
+        assertThat(persons.size(), equalTo(2));
     }
 }

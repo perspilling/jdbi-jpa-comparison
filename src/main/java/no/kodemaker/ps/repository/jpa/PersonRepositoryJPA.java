@@ -15,10 +15,6 @@ public class PersonRepositoryJPA implements JpaPersonRepository {
     @PersistenceContext(unitName = "jpa-ds")
     private EntityManager em;
 
-    public PersonRepositoryJPA() {
-        // for CDI
-    }
-
     // for testing
     public PersonRepositoryJPA(EntityManager entityManager) {
         em = entityManager;
@@ -31,7 +27,7 @@ public class PersonRepositoryJPA implements JpaPersonRepository {
 
     @Override
     public List<JpaPerson> findByName(String name) {
-        return em.createQuery("select p from JpaPerson p where p.name = :name", JpaPerson.class)
+        return em.createQuery("select p from JpaPerson p where p.name like :name", JpaPerson.class)
                 .setParameter("name", name)
                 .getResultList();
     }

@@ -4,20 +4,26 @@
              version="2.0">
 
     <persistence-unit name="jpa-ds" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.ejb.HibernatePersistence</provider>
+
         <!--jta-data-source>java:/jpaDS</jta-data-source-->
         <class>no.kodemaker.ps.domain.JpaPerson</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
+
         <properties>
             <property name="hibernate.show_sql" value="false"/>
             <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+
+            <!-- Database connection settings -->
+            <property name="hibernate.connection.driver_class" value="org.h2.Driver"/>
+            <property name="hibernate.connection.url" value="jdbc:h2:mem:test"/>
+            <property name="hibernate.connection.username" value="username"/>
+            <property name="hibernate.connection.password" value="password"/>
+            <property name="hibernate.c3p0.min_size" value="5"/>
 
             <!-- automatically create the DB schema -->
             <property name="hibernate.hbm2ddl.auto" value="create"/>
-
-            <!--property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/-->
-            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
-
-            <property name="hibernate.connection.autocommit" value="true"/>
 
             <!-- CamelCase classes are mapped to camel_case tables -->
             <property name="hibernate.ejb.naming_strategy" value="org.hibernate.cfg.ImprovedNamingStrategy"/>
