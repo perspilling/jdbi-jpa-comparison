@@ -22,23 +22,27 @@ interface TeamDao extends Transactional<TeamDao> {
     String TEAM_TABLE_NAME = "TEAM";
 
     String createTeamTableSql =
-            "create table TEAM (id " + DbProperties.SQL_AUTO_INCREMENT.val() + ", name varchar(80))";
+            "create table TEAM (id " + DbProperties.SQL_AUTO_INCREMENT.val() + " PRIMARY KEY, name varchar(80))";
 
-    @SqlUpdate("insert into TEAM (name) values (:t.name)")
-    void insert(@BindBean("t") Team team);
+    /**
+     * @param team
+     * @return the auto generated pk
+     */
+    @SqlUpdate("insert into TEAM (id, name) values (default, :t.name)")
+    Integer insert(@BindBean("t") Team team);
 
     @SqlUpdate("update TEAM set name = :t.name where id = :t.id")
     void update(@BindBean("t") Team team);
 
     @SqlQuery("select * from TEAM where id = :id")
-    Team findById(@Bind("id") Long id);
+    Team get(@Bind("id") Integer id);
 
     @SqlQuery("select * from TEAM where name like :name")
     List<Team> findByName(@Bind("name") String name);
 
     @SqlQuery("select * from TEAM")
-    List<Team> listAll();
+    List<Team> getAll();
 
     @SqlUpdate("delete from TEAM where id = :id")
-    void deleteById(@Bind("id") Long id);
+    void deleteById(@Bind("id") Integer id);
 }

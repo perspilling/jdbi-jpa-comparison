@@ -20,7 +20,7 @@ public class Person extends Entity {
         this.email = email;
     }
 
-    public Person(Long id, String name, Email email, String phone) {
+    public Person(Integer id, String name, Email email, String phone) {
         super(id);
         validateName(name);
         validateEmail(email);

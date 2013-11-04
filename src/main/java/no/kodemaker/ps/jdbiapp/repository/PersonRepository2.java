@@ -19,8 +19,9 @@ import java.util.List;
 public interface PersonRepository2 {
     String TABLE_NAME = "PERSON";
 
-    String createTableSql = "create table PERSON (id " + DbProperties.SQL_AUTO_INCREMENT.val() +
-            ", name varchar(80), email varchar(80), phone varchar(20))";
+    String createTableSql =
+            "create table PERSON (id " + DbProperties.SQL_AUTO_INCREMENT.val() + " PRIMARY KEY, " +
+            "name varchar(80), email varchar(80), phone varchar(20))";
 
     @SqlUpdate("insert into PERSON (name, email, phone) values (:p.name, :p.emailVal, :p.phone)")
     void insert(@BindBean("p") Person person);
@@ -29,7 +30,7 @@ public interface PersonRepository2 {
     void update(@BindBean("p") Person person);
 
     @SqlQuery("select * from PERSON where id = :id")
-    Person findById(@Bind("id") Long id);
+    Person findById(@Bind("id") Integer id);
 
     @SqlQuery("select * from PERSON where name like :name")
     List<Person> findByName(@Bind("name") String name);
@@ -41,5 +42,5 @@ public interface PersonRepository2 {
     List<Person> listAll();
 
     @SqlUpdate("delete from PERSON where id = :id")
-    void deleteById(@Bind("id") Long id);
+    void deleteById(@Bind("id") Integer id);
 }

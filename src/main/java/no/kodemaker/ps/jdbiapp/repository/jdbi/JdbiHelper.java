@@ -63,9 +63,9 @@ public class JdbiHelper {
         DBI dbi = getDBI();
         Handle handle = dbi.open();
         if (dbType == DbType.H2) {
-            handle.createCall("DROP TABLE " + tableName + " IF EXISTS").invoke();
+            handle.createCall("DROP TABLE " + tableName + " IF EXISTS CASCADE").invoke();
         } else {
-            handle.createCall("DROP TABLE IF EXISTS " + tableName).invoke();
+            handle.createCall("DROP TABLE IF EXISTS " + tableName + " CASCADE").invoke();
         }
     }
 
@@ -73,9 +73,9 @@ public class JdbiHelper {
         DBI dbi = getDBI();
         Handle handle = dbi.open();
         if (dbType == DbType.H2) {
-            handle.createCall("DROP TABLE " + tableName + " IF EXISTS").invoke();
+            handle.createCall("DROP TABLE " + tableName + " IF EXISTS CASCADE").invoke();
         } else {
-            handle.createCall("DROP TABLE IF EXISTS " + tableName).invoke();
+            handle.createCall("DROP TABLE IF EXISTS " + tableName + " CASCADE").invoke();
         }
         handle.execute(createTableSql);
         handle.close();

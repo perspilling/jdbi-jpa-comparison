@@ -15,7 +15,7 @@ public class Team extends Entity {
         this.name = name;
     }
 
-    public Team(Long id, String name) {
+    public Team(Integer id, String name) {
         super(id);
         this.name = name;
     }

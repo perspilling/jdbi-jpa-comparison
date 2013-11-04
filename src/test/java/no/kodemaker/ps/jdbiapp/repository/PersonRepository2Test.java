@@ -28,7 +28,7 @@ public class PersonRepository2Test {
 
     @Test
     public void shouldNotFindNonExistingPerson() {
-        Person person2 = repository.findById(100L);
+        Person person2 = repository.findById(100);
         assertNull(person2);
     }
 
