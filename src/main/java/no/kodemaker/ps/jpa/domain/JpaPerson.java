@@ -1,4 +1,4 @@
-package no.kodemaker.ps.domain;
+package no.kodemaker.ps.jpa.domain;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

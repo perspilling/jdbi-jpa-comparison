@@ -7,20 +7,19 @@
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
 
         <!--jta-data-source>java:/jpaDS</jta-data-source-->
-        <class>no.kodemaker.ps.domain.JpaPerson</class>
+        <class>no.kodemaker.ps.jpa.domain.JpaPerson</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
         <properties>
             <property name="hibernate.show_sql" value="false"/>
             <property name="hibernate.format_sql" value="true"/>
-            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
 
-            <!-- Database connection settings -->
+            <!-- Database properties for in-memory H2 database -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
             <property name="hibernate.connection.driver_class" value="org.h2.Driver"/>
             <property name="hibernate.connection.url" value="jdbc:h2:mem:test"/>
             <property name="hibernate.connection.username" value="username"/>
             <property name="hibernate.connection.password" value="password"/>
-            <property name="hibernate.c3p0.min_size" value="5"/>
 
             <!-- automatically create the DB schema -->
             <property name="hibernate.hbm2ddl.auto" value="create"/>

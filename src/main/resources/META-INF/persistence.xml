@@ -8,7 +8,7 @@
 
         <!--jta-data-source>java:/jpaDS</jta-data-source-->
 
-        <class>no.kodemaker.ps.domain.JpaPerson</class>
+        <class>no.kodemaker.ps.jpa.domain.JpaPerson</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="hibernate.show_sql" value="false"/>
@@ -17,17 +17,21 @@
             <!-- automatically create the DB schema -->
             <property name="hibernate.hbm2ddl.auto" value="create"/>
 
-            <!-- Database connection settings -->
+            <!-- Database connection settings for H2 in-memory DB -->
+            <!--
             <property name="hibernate.connection.driver_class" value="org.h2.Driver"/>
             <property name="hibernate.connection.url" value="jdbc:h2:mem:test"/>
             <property name="hibernate.connection.username" value="username"/>
             <property name="hibernate.connection.password" value="password"/>
-            <property name="hibernate.c3p0.min_size" value="5"/>
-
-            <!--property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/-->
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+            -->
 
-            <property name="hibernate.connection.autocommit" value="true"/>
+            <!-- Database connection settings for Postgres DB -->
+            <property name="hibernate.connection.driver_class" value="org.postgresql.Driver" />
+            <property name="hibernate.connection.url" value="jdbc:postgresql://localhost:5432/testdb"/>
+            <property name="hibernate.connection.username" value="PerSpilling"/>
+            <property name="hibernate.connection.password" value=""/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
 
             <!-- CamelCase classes are mapped to camel_case tables -->
             <property name="hibernate.ejb.naming_strategy" value="org.hibernate.cfg.ImprovedNamingStrategy"/>

@@ -1,45 +1,67 @@
-package no.kodemaker.ps.domain;
+package no.kodemaker.ps.jdbiapp.domain;
 
 /**
- * A standard POJO entity class representing persons, to be used with JDBI.
+ * An example POJO entity class to be used with JDBI.
  *
  * @author Per Spilling
  */
-public class JdbiPerson {
-    private Integer id;  // PK
-
+public class Person extends Entity {
     // required fields
     private String name;
-    private String email;
+    private Email email;
 
     // optional fields
     private String phone;
 
-    public JdbiPerson(String name, String email) {
+    public Person(String name, Email email) {
+        validateName(name);
+        validateEmail(email);
         this.name = name;
         this.email = email;
     }
 
-    public JdbiPerson(Integer id, String name, String email, String phone) {
-        this.id = id;
+    public Person(Long id, String name, Email email, String phone) {
+        super(id);
+        validateName(name);
+        validateEmail(email);
+
         this.name = name;
         this.email = email;
         this.phone = phone;
     }
 
-    public int getId() {
-        return id;
+    private void validateName(String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("'name' may not be null");
+        }
+    }
+
+    private void validateEmail(Email email) {
+        if (email == null) {
+            throw new IllegalArgumentException("'email' may not be null");
+        }
     }
 
     public String getName() {
         return name;
     }
 
-    public String getEmail() {
+    public void setName(String name) {
+        validateName(name);
+        this.name = name;
+    }
+
+    public Email getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public String getEmailVal() {
+        return email.getVal();
+    }
+
+
+    public void setEmail(Email email) {
+        validateEmail(email);
         this.email = email;
     }
 
@@ -56,11 +78,11 @@ public class JdbiPerson {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        JdbiPerson person = (JdbiPerson) o;
+        Person person = (Person) o;
 
-        if (!email.equals(person.email)) return false;
         if (id != null ? !id.equals(person.id) : person.id != null) return false;
         if (!name.equals(person.name)) return false;
+        if (!email.equals(person.email)) return false;
         if (phone != null ? !phone.equals(person.phone) : person.phone != null) return false;
 
         return true;

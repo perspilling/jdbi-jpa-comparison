@@ -1,6 +1,6 @@
-package no.kodemaker.ps.repository;
+package no.kodemaker.ps.jpa.repository;
 
-import no.kodemaker.ps.domain.JpaPerson;
+import no.kodemaker.ps.jpa.domain.JpaPerson;
 
 import java.util.List;
 

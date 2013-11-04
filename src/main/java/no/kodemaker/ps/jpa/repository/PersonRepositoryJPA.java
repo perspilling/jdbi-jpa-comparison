@@ -1,7 +1,6 @@
-package no.kodemaker.ps.repository.jpa;
+package no.kodemaker.ps.jpa.repository;
 
-import no.kodemaker.ps.domain.JpaPerson;
-import no.kodemaker.ps.repository.JpaPersonRepository;
+import no.kodemaker.ps.jpa.domain.JpaPerson;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;

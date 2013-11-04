@@ -1,6 +1,6 @@
-package no.kodemaker.ps.repository.jpa;
+package no.kodemaker.ps.jpa.repository;
 
-import no.kodemaker.ps.domain.JpaPerson;
+import no.kodemaker.ps.jpa.domain.JpaPerson;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -15,7 +15,7 @@ import static org.junit.Assert.assertThat;
 /**
  * @author Per Spilling
  */
-public class JpaPersonRepositoryTest {
+public class PersonRepositoryTest {
     private static EntityManagerFactory emf = Persistence.createEntityManagerFactory("jpa-ds");
     private static PersonRepositoryJPA repo;
 

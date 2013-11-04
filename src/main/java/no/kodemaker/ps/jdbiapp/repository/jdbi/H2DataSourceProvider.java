@@ -1,4 +1,4 @@
-package no.kodemaker.ps.repository.datasource;
+package no.kodemaker.ps.jdbiapp.repository.jdbi;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 
