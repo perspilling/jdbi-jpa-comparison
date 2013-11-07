@@ -17,8 +17,16 @@ import java.util.List;
  */
 public class TeamRepository implements TableCreator {
     private JdbiHelper jdbiHelper = new JdbiHelper();
+    private final DBI dbi = jdbiHelper.getDBI();
+    /**
+     * Using dbi.onDemand(repo.class) means that the repo instance and it's db connection will be managed
+     * by DBI.
+     */
+    private TeamDao teamDao = dbi.onDemand(TeamDao.class);
+    private TeamPersonDao teamPersonDao = dbi.onDemand(TeamPersonDao.class); // team->person mapping table
+    private PersonDao personDao = dbi.onDemand(PersonDao.class);
 
-    TeamRepository() {
+    public TeamRepository() {
     }
 
     @Override
@@ -39,19 +47,16 @@ public class TeamRepository implements TableCreator {
         createTable();
     }
 
-    public Integer insert(final Team team) {
-        final DBI dbi = jdbiHelper.getDBI();
-
+    public long insert(final Team team) {
         /**
          * Must update 2 tables here, so will do this in a TransactionCallback.
          */
-        return dbi.inTransaction(new TransactionCallback<Integer>() {
+        return dbi.inTransaction(new TransactionCallback<Long>() {
             @Override
-            public Integer inTransaction(Handle conn, TransactionStatus status) throws Exception {
-                TeamDao teamDao = dbi.onDemand(TeamDao.class);
-                TeamPersonDao teamPersonDao = dbi.onDemand(TeamPersonDao.class);
-                Integer teamId = teamDao.insert(team);
+            public Long inTransaction(Handle conn, TransactionStatus status) throws Exception {
+                long teamId = teamDao.insert(team);
                 for (Person p : team.getMembers()) {
+                    // update the team->person mapping table
                     teamPersonDao.insert(new TeamPerson(teamId, p.getId()));
                 }
                 return teamId;
@@ -59,31 +64,39 @@ public class TeamRepository implements TableCreator {
         });
     }
 
-    public Team get(Integer pk) {
-        DBI dbi = jdbiHelper.getDBI();
-        TeamDao teamDao = dbi.onDemand(TeamDao.class);
-        TeamPersonDao teamPersonDao = dbi.onDemand(TeamPersonDao.class);
-        PersonRepository2 personDao = dbi.onDemand(PersonRepository2.class);
+    public long insertOrUpdate(final Team team) {
+        if (team.getId() == null) return insert(team);
 
+        return dbi.inTransaction(new TransactionCallback<Long>() {
+            @Override
+            public Long inTransaction(Handle conn, TransactionStatus status) throws Exception {
+                teamDao.update(team);
+                for (Person p : team.getMembers()) {
+                    // update the team->person mapping table
+                    TeamPerson tp = new TeamPerson(team.getId(), p.getId());
+                    if (!teamPersonDao.findByTeamId(team.getId()).contains(tp)) {
+                        teamPersonDao.insert(tp);
+                    }
+                }
+                return team.getId();
+            }
+        });
+    }
+
+    public Team get(Long pk) {
         Team team = teamDao.get(pk);
         getTeamMembers(team, teamPersonDao, personDao);
         return team;
     }
 
-    private void getTeamMembers(Team team, TeamPersonDao teamPersonDao, PersonRepository2 personDao) {
+    private void getTeamMembers(Team team, TeamPersonDao teamPersonDao, PersonDao personDao) {
         List<TeamPerson> teamPersonList = teamPersonDao.findByTeamId(team.getId());
-
         for (TeamPerson tp : teamPersonList) {
-            team.addMember(personDao.findById(tp.getPersonId()));
+            team.addMember(personDao.get(tp.getPersonId()));
         }
     }
 
     public List<Team> getAll() {
-        DBI dbi = jdbiHelper.getDBI();
-        TeamDao teamDao = dbi.onDemand(TeamDao.class);
-        TeamPersonDao teamPersonDao = dbi.onDemand(TeamPersonDao.class);
-        PersonRepository2 personDao = dbi.onDemand(PersonRepository2.class);
-
         List<Team> teams = teamDao.getAll();
         for (Team t : teams) {
             getTeamMembers(t, teamPersonDao, personDao);

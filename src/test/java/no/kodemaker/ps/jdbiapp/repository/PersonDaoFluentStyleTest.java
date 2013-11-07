@@ -11,23 +11,21 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Per Spilling
  */
-public class PersonRepositoryTest {
+public class PersonDaoFluentStyleTest {
 
-    private static PersonRepository repository;
+    private static PersonDaoFluentStyle repository;
 
     @BeforeClass
-    public static void init() {
+    public static void initDb() {
         JdbiHelper jdbiHelper = new JdbiHelper();
-        repository = new PersonRepositoryJDBI(jdbiHelper.getDBI());
-        jdbiHelper.createTableIfNotPresent(PersonRepository.TABLE_NAME, PersonRepository2.createTableSql);
-        repository.add(new Person("Per Spilling", new Email("per@kodemaker.no")));
-        repository.add(new Person("Per Spellman", new Email("pspellman@nomail.com")));
-        repository.add(new Person("Larry", new Email("larry@nomail.com")));
-        repository.add(new Person("James", new Email("james@nomail.com")));
+        repository = new PersonDaoFluentStyle(jdbiHelper.getDBI());
+        jdbiHelper.resetTable(PersonDao.TABLE_NAME, PersonDao.createTableSql);
+        DbSeeder.initPersonTable(repository);
     }
 
     @Test
@@ -38,13 +36,15 @@ public class PersonRepositoryTest {
 
     @Test
     public void idShouldHaveBeenSetByDB() {
-
+        repository.insert(new Person("John Doe", new Email("john.doe@nomail.com")));
+        Person p = repository.findByName("John Doe").get(0);
+        assertTrue(p.getId() != null);
     }
 
     @Test
     public void retrieveAll() {
-        List<Person> persons = repository.listAll();
-        assertThat(persons.size(), equalTo(4));
+        List<Person> persons = repository.getAll();
+        assertTrue(persons.size() > 4);
     }
 
     @Test

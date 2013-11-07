@@ -7,15 +7,15 @@ import org.skife.jdbi.v2.Handle;
 import java.util.List;
 
 /**
- * A JBDI implementation of the {@link PersonRepository} interface.
+ * Example of using the jDBI fluent style API.
  *
  * @author Per Spilling
  */
-public class PersonRepositoryJDBI implements PersonRepository {
+public class PersonDaoFluentStyle {
 
     private DBI dbi;
 
-    public PersonRepositoryJDBI(DBI dbi) {
+    public PersonDaoFluentStyle(DBI dbi) {
         this.dbi = dbi;
     }
 
@@ -39,7 +39,7 @@ public class PersonRepositoryJDBI implements PersonRepository {
         return persons;
     }
 
-    public void add(Person person) {
+    public void insert(Person person) {
         try (Handle h = dbi.open()) {
             h.createStatement("insert into PERSON (name, email, phone) values (:name, :email, :phone)")
                     .bind("name", person.getName())
@@ -49,7 +49,7 @@ public class PersonRepositoryJDBI implements PersonRepository {
         }
     }
 
-    public List<Person> listAll() {
+    public List<Person> getAll() {
         List<Person> persons;
         try (Handle h = dbi.open()) {
             persons = h.createQuery("select * from PERSON").map(PersonMapper.INSTANCE).list();

@@ -17,6 +17,6 @@ public class PersonMapper implements ResultSetMapper<Person> {
     public static PersonMapper INSTANCE = new PersonMapper();
 
     public Person map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
-        return new Person(rs.getInt("id"), rs.getString("name"), new Email(rs.getString("email")), rs.getString("phone"));
+        return new Person(rs.getLong("id"), rs.getString("name"), new Email(rs.getString("email")), rs.getString("phone"));
     }
 }

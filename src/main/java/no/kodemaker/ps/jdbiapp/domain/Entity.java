@@ -8,16 +8,16 @@ import java.io.Serializable;
  * @author Per Spilling
  */
 public abstract class Entity implements Serializable {
-    protected Integer id;
+    protected Long id;
 
     protected Entity() {
     }
 
-    protected Entity(Integer id) {
+    protected Entity(Long id) {
         this.id = id;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 

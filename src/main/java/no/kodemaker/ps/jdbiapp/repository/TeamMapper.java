@@ -14,6 +14,6 @@ import java.sql.SQLException;
  */
 public class TeamMapper implements ResultSetMapper<Team> {
     public Team map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
-        return new Team(rs.getInt("id"), rs.getString("name"));
+        return new Team(rs.getLong("id"), rs.getString("name"));
     }
 }

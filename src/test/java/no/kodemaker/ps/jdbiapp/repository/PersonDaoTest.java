@@ -1,5 +1,6 @@
 package no.kodemaker.ps.jdbiapp.repository;
 
+import no.kodemaker.ps.jdbiapp.domain.Email;
 import no.kodemaker.ps.jdbiapp.domain.Person;
 import no.kodemaker.ps.jdbiapp.repository.jdbi.JdbiHelper;
 import org.junit.BeforeClass;
@@ -10,37 +11,40 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Per Spilling
  */
-public class PersonRepository2Test {
+public class PersonDaoTest {
 
-    private static PersonRepository2 repository;
+    private static PersonDao repository;
 
     @BeforeClass
     public static void init() {
         JdbiHelper jdbiHelper = new JdbiHelper();
-        jdbiHelper.resetTable(PersonRepository2.TABLE_NAME, PersonRepository2.createTableSql);
-        repository = jdbiHelper.getDBI().onDemand(PersonRepository2.class);
-        new DbSeeder().initPersonTable(repository);
+        jdbiHelper.resetTable(PersonDao.TABLE_NAME, PersonDao.createTableSql);
+        repository = jdbiHelper.getDBI().onDemand(PersonDao.class);
+        DbSeeder.initPersonTable(repository);
     }
 
     @Test
     public void shouldNotFindNonExistingPerson() {
-        Person person2 = repository.findById(100);
+        Person person2 = repository.get(100);
         assertNull(person2);
     }
 
     @Test
-    public void idShouldHaveBeenSetByDB() {
-
+    public void insertShouldReturnPk() {
+        long pk = repository.insert(new Person("Albert Einstein", new Email("albert@nomail.com")));
+        Person p = repository.get(pk);
+        assertThat(p.getName(), equalTo("Albert Einstein"));
     }
 
     @Test
     public void retrieveAll() {
-        List<Person> persons = repository.listAll();
-        assertThat(persons.size(), equalTo(5));
+        List<Person> persons = repository.getAll();
+        assertTrue(persons.size() >= 5);
     }
 
     @Test
@@ -57,26 +61,26 @@ public class PersonRepository2Test {
 
     @Test
     public void testDelete() {
-        List<Person> persons = repository.listAll();
-        assertThat(persons.size(), equalTo(5));
+        List<Person> persons = repository.getAll();
+        int size = persons.size();
         Person firstPerson = persons.get(0);
 
         repository.deleteById(firstPerson.getId());
-        persons = repository.listAll();
-        assertThat(persons.size(), equalTo(4));
+        persons = repository.getAll();
+        assertThat(persons.size(), equalTo(size - 1));
 
         repository.insert(firstPerson);
-        persons = repository.listAll();
-        assertThat(persons.size(), equalTo(5));
+        persons = repository.getAll();
+        assertThat(persons.size(), equalTo(size));
     }
 
     @Test
     public void testUpdate() {
-        List<Person> persons = repository.listAll();
+        List<Person> persons = repository.getAll();
         Person person = persons.get(0);
         person.setPhone("12345678");
         repository.update(person);
-        Person updatedPerson = repository.findById(person.getId());
+        Person updatedPerson = repository.get(person.getId());
         assertThat(person, equalTo(updatedPerson));
     }
 }
