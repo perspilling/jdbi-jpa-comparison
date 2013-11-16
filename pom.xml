@@ -15,6 +15,8 @@
         <dw.version>0.6.2</dw.version>
         <hibernate.version>4.1.1.Final</hibernate.version>
         <hibernate-jpa-2.0-api.version>1.0.1.Final</hibernate-jpa-2.0-api.version>
+        <spring.version>3.2.4.RELEASE</spring.version>
+        <tomcat.version>7.0.42</tomcat.version>
     </properties>
 
     <dependencies>
@@ -44,6 +46,51 @@
             <artifactId>hibernate-jpa-2.0-api</artifactId>
             <version>${hibernate-jpa-2.0-api.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!--
+        Spring (IoC and TX handling)
+        -->
+        <!-- Using JEE std @Inject annotations instead of Spring annotations -->
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <!--
+        Tomcat JDBC connection pool
+        -->
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-jdbc</artifactId>
+            <version>${tomcat.version}</version>
         </dependency>
 
         <!--

@@ -18,41 +18,41 @@ import static org.junit.Assert.assertTrue;
  */
 public class PersonDaoFluentStyleTest {
 
-    private static PersonDaoFluentStyle repository;
+    private static PersonDao dao;
 
     @BeforeClass
     public static void initDb() {
         JdbiHelper jdbiHelper = new JdbiHelper();
-        repository = new PersonDaoFluentStyle(jdbiHelper.getDBI());
-        jdbiHelper.resetTable(PersonDao.TABLE_NAME, PersonDao.createTableSql);
-        DbSeeder.initPersonTable(repository);
+        dao = new PersonDaoFluentStyle(jdbiHelper.getDBI());
+        jdbiHelper.resetTable(PersonDaoJdbi.TABLE_NAME, PersonDaoJdbi.createPersonTableSql_postgres);
+        DbSeeder.initPersonTable(dao);
     }
 
     @Test
     public void shouldNotFindNonExistingPerson() {
-        Person person2 = repository.getPerson(100);
+        Person person2 = dao.get(100);
         assertNull(person2);
     }
 
     @Test
     public void idShouldHaveBeenSetByDB() {
-        repository.insert(new Person("John Doe", new Email("john.doe@nomail.com")));
-        Person p = repository.findByName("John Doe").get(0);
+        dao.save(new Person("John Doe", new Email("john.doe@nomail.com")));
+        Person p = dao.findByName("John Doe").get(0);
         assertTrue(p.getId() != null);
     }
 
     @Test
     public void retrieveAll() {
-        List<Person> persons = repository.getAll();
+        List<Person> persons = dao.getAll();
         assertTrue(persons.size() > 4);
     }
 
     @Test
     public void findPer() {
-        List<Person> persons = repository.findByName("Per%");
+        List<Person> persons = dao.findByName("Per%");
         assertThat(persons.size(), equalTo(2));
 
-        persons = repository.findByName("Per Spilling");
+        persons = dao.findByName("Per Spilling");
         assertThat(persons.size(), equalTo(1));
     }
 }

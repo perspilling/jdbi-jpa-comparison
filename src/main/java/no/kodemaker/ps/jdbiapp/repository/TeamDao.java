@@ -1,6 +1,5 @@
 package no.kodemaker.ps.jdbiapp.repository;
 
-import no.kodemaker.ps.jdbiapp.DbProperties;
 import no.kodemaker.ps.jdbiapp.domain.Team;
 import org.skife.jdbi.v2.sqlobject.*;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
@@ -18,17 +17,21 @@ import java.util.List;
 interface TeamDao extends Transactional<TeamDao> {
     String TEAM_TABLE_NAME = "TEAM";
 
-    String createTeamTableSql =
-            "create table TEAM (id " + DbProperties.SQL_AUTO_INCREMENT.val() + " PRIMARY KEY, name varchar(80))";
+    String createTeamTableSql_postgres =
+            "create table TEAM (" +
+                    "team_id serial PRIMARY KEY, " +
+                    "name varchar(80) NOT NULL, " +
+                    "poc_person_id integer REFERENCES PERSON (person_id), " +
+                    "unique(name))";
 
-    @SqlUpdate("insert into TEAM (id, name) values (default, :t.name)")
+    @SqlUpdate("insert into TEAM (team_id, name, poc_person_id) values (default, :t.name, :t.pointOfContactId)")
     @GetGeneratedKeys
     long insert(@BindBean("t") Team team);
 
-    @SqlUpdate("update TEAM set name = :t.name where id = :t.id")
+    @SqlUpdate("update TEAM set name = :t.name,  poc_person_id = :t.pointOfContactId where team_id = :t.id")
     void update(@BindBean("t") Team team);
 
-    @SqlQuery("select * from TEAM where id = :id")
+    @SqlQuery("select * from TEAM where team_id = :id")
     Team get(@Bind("id") long id);
 
     @SqlQuery("select * from TEAM where name like :name")
@@ -37,6 +40,6 @@ interface TeamDao extends Transactional<TeamDao> {
     @SqlQuery("select * from TEAM")
     List<Team> getAll();
 
-    @SqlUpdate("delete from TEAM where id = :id")
+    @SqlUpdate("delete from TEAM where team_id = :id")
     void deleteById(@Bind("id") long id);
 }

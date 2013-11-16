@@ -14,8 +14,11 @@ interface TeamPersonDao extends Transactional<TeamPersonDao> {
 
     final static String TEAM_PERSON_TABLE_NAME = "TEAM_PERSON";
 
-    final static String createTeamPersonMappingTableSql = "create table TEAM_PERSON (" +
-            "team_id integer REFERENCES TEAM (id), person_id integer REFERENCES PERSON (id), PRIMARY KEY (team_id, person_id) );";
+    final static String createTeamPersonMappingTableSql =
+            "create table TEAM_PERSON (" +
+                    "team_id integer REFERENCES TEAM, " +
+                    "person_id integer REFERENCES PERSON, " +
+                    "PRIMARY KEY (team_id, person_id) );";
 
 
     @SqlUpdate("insert into TEAM_PERSON (team_id, person_id) values (:tp.teamId, :tp.personId)")

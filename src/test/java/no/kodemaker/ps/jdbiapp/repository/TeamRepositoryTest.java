@@ -16,15 +16,15 @@ import static org.hamcrest.CoreMatchers.equalTo;
  */
 public class TeamRepositoryTest {
     private static TeamRepository teamRepository;
-    private static PersonDao personRepository;
+    private static PersonDao personDao;
 
     @BeforeClass
     public static void initDb() {
         JdbiHelper jdbiHelper = new JdbiHelper();
 
-        personRepository = jdbiHelper.getDBI().onDemand(PersonDao.class);
-        jdbiHelper.resetTable(PersonDao.TABLE_NAME, PersonDao.createTableSql);
-        DbSeeder.initPersonTable(personRepository);
+        personDao = new PersonDaoJdbi();
+        jdbiHelper.resetTable(PersonDaoJdbi.TABLE_NAME, PersonDaoJdbi.createPersonTableSql_postgres);
+        DbSeeder.initPersonTable(personDao);
 
         teamRepository = jdbiHelper.getDBI().onDemand(TeamRepository.class);
         teamRepository.resetTable();
@@ -42,24 +42,27 @@ public class TeamRepositoryTest {
     }
 
     private Team createApollo11Team() {
-        Team team = new Team("apollo11");
-        team.addMember(personRepository.findByName("Neil Armstrong").get(0));
-        team.addMember(personRepository.findByName("Edwin Aldrin").get(0));
-        team.addMember(personRepository.findByName("Michael Collins").get(0));
+        Person commander = personDao.findByName("Neil Armstrong").get(0);
+        Team team = new Team("apollo11", commander);
+        team.addMember(commander);
+        team.addMember(personDao.findByName("Edwin Aldrin").get(0));
+        team.addMember(personDao.findByName("Michael Collins").get(0));
         return team;
     }
 
     @Test
     public void testUpdate() {
-        Team team = new Team("dining philosophers");
-        long personId = personRepository.insert(new Person("Edsger Dijktstra", new Email("dijkstra@mail.com")));
-        team.addMember(personRepository.get(personId));
+        Person edsger = new Person("Edsger Dijktstra", new Email("dijkstra@mail.com"));
+        edsger = personDao.save(edsger);
+
+        Team team = new Team("dining philosophers", edsger);
+        team.addMember(edsger);
         Long teamPk = teamRepository.insert(team);
         team = teamRepository.get(teamPk);
         assertThat(team.getMembers().size(), equalTo(1));
 
-        personId = personRepository.insert(new Person("Donald Knuth", new Email("knuth@nomail.com")));
-        team.addMember(personRepository.get(personId));
+        Person donald = personDao.save(new Person("Donald Knuth", new Email("knuth@nomail.com")));
+        team.addMember(donald);
         teamRepository.insertOrUpdate(team);
         team = teamRepository.get(teamPk);
         assertThat(team.getMembers().size(), equalTo(2));

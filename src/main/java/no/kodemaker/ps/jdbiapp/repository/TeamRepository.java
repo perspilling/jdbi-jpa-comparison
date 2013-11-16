@@ -18,20 +18,18 @@ import java.util.List;
 public class TeamRepository implements TableCreator {
     private JdbiHelper jdbiHelper = new JdbiHelper();
     private final DBI dbi = jdbiHelper.getDBI();
-    /**
-     * Using dbi.onDemand(repo.class) means that the repo instance and it's db connection will be managed
-     * by DBI.
-     */
+
+    // Let DBI manage the db connections
     private TeamDao teamDao = dbi.onDemand(TeamDao.class);
     private TeamPersonDao teamPersonDao = dbi.onDemand(TeamPersonDao.class); // team->person mapping table
-    private PersonDao personDao = dbi.onDemand(PersonDao.class);
+    private PersonDao personDaoJdbi = dbi.onDemand(PersonDaoJdbi.class);
 
     public TeamRepository() {
     }
 
     @Override
     public void createTable() {
-        jdbiHelper.createTableIfNotPresent(TeamDao.TEAM_TABLE_NAME, TeamDao.createTeamTableSql);
+        jdbiHelper.createTableIfNotPresent(TeamDao.TEAM_TABLE_NAME, TeamDao.createTeamTableSql_postgres);
         jdbiHelper.createTableIfNotPresent(TeamPersonDao.TEAM_PERSON_TABLE_NAME, TeamPersonDao.createTeamPersonMappingTableSql);
     }
 
@@ -85,7 +83,8 @@ public class TeamRepository implements TableCreator {
 
     public Team get(Long pk) {
         Team team = teamDao.get(pk);
-        getTeamMembers(team, teamPersonDao, personDao);
+        team.setPointOfContact(personDaoJdbi.get(team.getPointOfContactId()));
+        getTeamMembers(team, teamPersonDao, personDaoJdbi);
         return team;
     }
 
@@ -99,7 +98,8 @@ public class TeamRepository implements TableCreator {
     public List<Team> getAll() {
         List<Team> teams = teamDao.getAll();
         for (Team t : teams) {
-            getTeamMembers(t, teamPersonDao, personDao);
+            t.setPointOfContact(personDaoJdbi.get(t.getPointOfContactId()));
+            getTeamMembers(t, teamPersonDao, personDaoJdbi);
         }
         return teams;
     }
