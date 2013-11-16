@@ -24,7 +24,8 @@ public class PersonDaoFluentStyle implements PersonDao {
     public Person get(long id) {
         Person person;
         try (Handle h = dbi.open()) {
-            person = h.createQuery("select * from PERSON where id = :id").bind("id", id)
+            person = h.createQuery("select * from PERSON where person_id" +
+                    " = :id").bind("id", id)
                     .map(PersonMapper.INSTANCE)
                     .first();
         }

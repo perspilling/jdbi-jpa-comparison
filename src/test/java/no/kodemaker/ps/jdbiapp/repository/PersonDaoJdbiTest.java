@@ -58,13 +58,12 @@ public class PersonDaoJdbiTest {
     public void testDelete() {
         List<Person> persons = dao.getAll();
         int size = persons.size();
-        Person firstPerson = persons.get(0);
 
-        dao.deleteById(firstPerson.getId());
+        Person p = dao.save(new Person("John Doe", new Email("john@mail.com")));
         persons = dao.getAll();
-        assertThat(persons.size(), equalTo(size - 1));
+        assertThat(persons.size(), equalTo(size + 1));
 
-        dao.save(new Person("John Doe", new Email("john@mail.com")));
+        dao.deleteById(p.getId());
         persons = dao.getAll();
         assertThat(persons.size(), equalTo(size));
     }

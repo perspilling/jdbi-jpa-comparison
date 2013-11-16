@@ -14,8 +14,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 /**
  * @author Per Spilling
  */
-public class TeamRepositoryTest {
-    private static TeamRepository teamRepository;
+public class TeamDaoTest {
+    private static TeamDao teamDao;
     private static PersonDao personDao;
 
     @BeforeClass
@@ -26,15 +26,15 @@ public class TeamRepositoryTest {
         jdbiHelper.resetTable(PersonDaoJdbi.TABLE_NAME, PersonDaoJdbi.createPersonTableSql_postgres);
         DbSeeder.initPersonTable(personDao);
 
-        teamRepository = jdbiHelper.getDBI().onDemand(TeamRepository.class);
-        teamRepository.resetTable();
+        teamDao = jdbiHelper.getDBI().onDemand(TeamDaoJdbi.class);
+        teamDao.resetTable();
     }
 
     @Test
     public void testInsertAndGet() {
         Team team = createApollo11Team();
-        Long teamPk = teamRepository.insert(team);
-        Team savedTeam = teamRepository.get(teamPk);
+        Long teamPk = teamDao.save(team);
+        Team savedTeam = teamDao.get(teamPk);
         assertTrue(team.getMembers().size() == savedTeam.getMembers().size());
         assertTrue(savedTeam.getName().equals("apollo11"));
         assertTrue(savedTeam.getMembers().size() == 3);
@@ -57,14 +57,14 @@ public class TeamRepositoryTest {
 
         Team team = new Team("dining philosophers", edsger);
         team.addMember(edsger);
-        Long teamPk = teamRepository.insert(team);
-        team = teamRepository.get(teamPk);
+        Long teamPk = teamDao.save(team);
+        team = teamDao.get(teamPk);
         assertThat(team.getMembers().size(), equalTo(1));
 
         Person donald = personDao.save(new Person("Donald Knuth", new Email("knuth@nomail.com")));
         team.addMember(donald);
-        teamRepository.insertOrUpdate(team);
-        team = teamRepository.get(teamPk);
+        teamDao.save(team);
+        team = teamDao.get(teamPk);
         assertThat(team.getMembers().size(), equalTo(2));
     }
 

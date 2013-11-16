@@ -24,6 +24,7 @@ public class PersonDaoFluentStyleTest {
     public static void initDb() {
         JdbiHelper jdbiHelper = new JdbiHelper();
         dao = new PersonDaoFluentStyle(jdbiHelper.getDBI());
+        // the table name and create table sql is specified in the PersonDaoJdbi class
         jdbiHelper.resetTable(PersonDaoJdbi.TABLE_NAME, PersonDaoJdbi.createPersonTableSql_postgres);
         DbSeeder.initPersonTable(dao);
     }

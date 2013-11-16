@@ -5,7 +5,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 
 /**
- * Entity class for a team. Schema is defined in {@link no.kodemaker.ps.jdbiapp.repository.TeamDao}.
+ * Entity class for a team. Schema is defined in {@link no.kodemaker.ps.jdbiapp.repository.TeamDaoJdbi}.
  *
  * @author Per Spilling
  */
@@ -14,28 +14,26 @@ public class Team extends Entity {
     private String name;
 
     // optional fields
-    private Long pointOfContactId;
+    private Person pointOfContact;
     private List<Person> members = Lists.newArrayList();
 
-    // transient fields
-    private Person pointOfContact;
-
-    public Team(Long id, String name, Long pointOfContactId) {
-        super(id);
+    public Team(String name) {
         this.name = name;
-        this.pointOfContactId = pointOfContactId;
     }
 
     public Team(String name, Person pointOfContact) {
         this.name = name;
-        this.pointOfContactId = pointOfContact.id;
         this.pointOfContact = pointOfContact;
+    }
+
+    public Team(Long id, String name) {
+        super(id);
+        this.name = name;
     }
 
     public Team(Long id, String name, Person pointOfContact) {
         super(id);
         this.name = name;
-        this.pointOfContactId = pointOfContact.id;
         this.pointOfContact = pointOfContact;
     }
 
@@ -44,7 +42,7 @@ public class Team extends Entity {
     }
 
     public Long getPointOfContactId() {
-        return pointOfContactId;
+        return pointOfContact.getId();
     }
 
     public Person getPointOfContact() {
@@ -52,7 +50,6 @@ public class Team extends Entity {
     }
 
     public void setPointOfContact(Person pointOfContact) {
-        this.pointOfContactId = pointOfContact.id;
         this.pointOfContact = pointOfContact;
     }
 
