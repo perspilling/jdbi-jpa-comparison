@@ -12,6 +12,6 @@ import java.sql.SQLException;
 public class TeamPersonMapper implements ResultSetMapper<TeamPerson> {
     @Override
     public TeamPerson map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
-        return new TeamPerson(rs.getLong("team_id"), rs.getLong("person_id"));
+        return new TeamPerson(rs.getLong("teamId"), rs.getLong("personId"));
     }
 }

@@ -30,6 +30,10 @@ public class TeamPerson {
         this.personId = personId;
     }
 
+    /**
+     * Must implement equals and hashCode to make the mapping class work properly
+     */
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

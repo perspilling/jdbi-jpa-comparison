@@ -3,13 +3,12 @@ package no.kodemaker.ps.jdbiapp.repository;
 import no.kodemaker.ps.jdbiapp.domain.Email;
 import no.kodemaker.ps.jdbiapp.domain.Person;
 import no.kodemaker.ps.jdbiapp.domain.Team;
-import no.kodemaker.ps.jdbiapp.repository.jdbi.JdbiHelper;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
  * @author Per Spilling
@@ -20,21 +19,20 @@ public class TeamDaoTest {
 
     @BeforeClass
     public static void initDb() {
-        JdbiHelper jdbiHelper = new JdbiHelper();
-
         personDao = new PersonDaoJdbi();
-        jdbiHelper.resetTable(PersonDaoJdbi.TABLE_NAME, PersonDaoJdbi.createPersonTableSql_postgres);
+        personDao.dropTable();
+        personDao.createTable();
         DbSeeder.initPersonTable(personDao);
 
-        teamDao = jdbiHelper.getDBI().onDemand(TeamDaoJdbi.class);
-        teamDao.resetTable();
+        teamDao = new TeamDaoJdbi();
+        teamDao.dropTable();
+        teamDao.createTable();
     }
 
     @Test
     public void testInsertAndGet() {
         Team team = createApollo11Team();
-        Long teamPk = teamDao.save(team);
-        Team savedTeam = teamDao.get(teamPk);
+        Team savedTeam = teamDao.save(team);
         assertTrue(team.getMembers().size() == savedTeam.getMembers().size());
         assertTrue(savedTeam.getName().equals("apollo11"));
         assertTrue(savedTeam.getMembers().size() == 3);
@@ -57,14 +55,12 @@ public class TeamDaoTest {
 
         Team team = new Team("dining philosophers", edsger);
         team.addMember(edsger);
-        Long teamPk = teamDao.save(team);
-        team = teamDao.get(teamPk);
+        team = teamDao.save(team);
         assertThat(team.getMembers().size(), equalTo(1));
 
         Person donald = personDao.save(new Person("Donald Knuth", new Email("knuth@nomail.com")));
         team.addMember(donald);
-        teamDao.save(team);
-        team = teamDao.get(teamPk);
+        team = teamDao.save(team);
         assertThat(team.getMembers().size(), equalTo(2));
     }
 

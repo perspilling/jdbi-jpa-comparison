@@ -1,13 +1,14 @@
 package no.kodemaker.ps.jdbiapp.repository;
 
-import no.kodemaker.ps.jdbiapp.repository.jdbi.JdbiHelper;
 import no.kodemaker.ps.jdbiapp.domain.Email;
 import no.kodemaker.ps.jdbiapp.domain.Person;
-import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.*;
 
 /**
@@ -19,14 +20,14 @@ public class PersonDaoJdbiTest {
 
     @BeforeClass
     public static void init() {
-        JdbiHelper jdbiHelper = new JdbiHelper();
-        jdbiHelper.resetTable(PersonDaoJdbi.TABLE_NAME, PersonDaoJdbi.createPersonTableSql_postgres);
+        dao.dropTable();
+        dao.createTable();
         DbSeeder.initPersonTable(dao);
     }
 
     @Test
     public void shouldNotFindNonExistingPerson() {
-        Person p = dao.get(100);
+        Person p = dao.get(100L);
         assertNull(p);
     }
 
@@ -40,6 +41,15 @@ public class PersonDaoJdbiTest {
     public void retrieveAll() {
         List<Person> persons = dao.getAll();
         assertTrue(persons.size() >= 5);
+    }
+
+    @Test
+    public void testDependantHomeAddress() {
+        Person person = dao.findByName("Per Spilling").get(0);
+        assertThat(person.getHomeAddress(), notNullValue());
+        person.getHomeAddress().setPostalPlace("Oslo");
+        Person p = dao.save(person);
+        assertThat(p.getHomeAddress().getPostalPlace(), equalTo("Oslo"));
     }
 
     @Test
@@ -63,7 +73,7 @@ public class PersonDaoJdbiTest {
         persons = dao.getAll();
         assertThat(persons.size(), equalTo(size + 1));
 
-        dao.deleteById(p.getId());
+        dao.delete(p.getId());
         persons = dao.getAll();
         assertThat(persons.size(), equalTo(size));
     }

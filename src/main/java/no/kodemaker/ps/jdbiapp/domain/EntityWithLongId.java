@@ -3,17 +3,17 @@ package no.kodemaker.ps.jdbiapp.domain;
 import java.io.Serializable;
 
 /**
- * Abstract superclass for entities.
+ * Abstract superclass for entities with an id of type long.
  *
  * @author Per Spilling
  */
-public abstract class Entity implements Serializable {
+public abstract class EntityWithLongId implements Serializable {
     protected Long id;
 
-    protected Entity() {
+    protected EntityWithLongId() {
     }
 
-    protected Entity(Long id) {
+    protected EntityWithLongId(Long id) {
         this.id = id;
     }
 
@@ -24,9 +24,9 @@ public abstract class Entity implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Entity)) return false;
+        if (!(o instanceof EntityWithLongId)) return false;
 
-        Entity entity = (Entity) o;
+        EntityWithLongId entity = (EntityWithLongId) o;
 
         if (id != null ? !id.equals(entity.id) : entity.id != null) return false;
 

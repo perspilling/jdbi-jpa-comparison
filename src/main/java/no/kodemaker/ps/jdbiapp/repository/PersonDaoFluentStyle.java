@@ -15,21 +15,46 @@ import java.util.List;
 public class PersonDaoFluentStyle implements PersonDao {
 
     private DBI dbi;
+    private PersonDaoJdbi personDaoJdbi;
 
     public PersonDaoFluentStyle(DBI dbi) {
         this.dbi = dbi;
+        this.personDaoJdbi = new PersonDaoJdbi();
+
     }
 
     @Override
-    public Person get(long id) {
+    public void createTable() {
+        personDaoJdbi.createTable();
+    }
+
+    @Override
+    public void dropTable() {
+        personDaoJdbi.dropTable();
+    }
+
+    @Override
+    public Person get(Long id) {
         Person person;
         try (Handle h = dbi.open()) {
-            person = h.createQuery("select * from PERSON where person_id" +
+            person = h.createQuery("select * from PERSON where personId" +
                     " = :id").bind("id", id)
                     .map(PersonMapper.INSTANCE)
                     .first();
         }
         return person;
+    }
+
+    @Override
+    public boolean exists(Long id) {
+        return get(id) != null;
+    }
+
+    @Override
+    public void delete(Long id) {
+        try (Handle h = dbi.open()) {
+            h.createStatement("delete from PERSON where personId = :id").bind("id", id).execute();
+        }
     }
 
     @Override
@@ -43,7 +68,7 @@ public class PersonDaoFluentStyle implements PersonDao {
                         .bind("phone", person.getPhone())
                         .executeAndReturnGeneratedKeys(LongMapper.FIRST).first();
             } else {
-                pk = h.createStatement("update PERSON set name = :p.name, email = :p.emailVal, phone = :p.phone where person_id = :p.id")
+                pk = h.createStatement("update PERSON set name = :p.name, email = :p.emailVal, phone = :p.phone where personId = :p.id")
                         .bind("name", person.getName())
                         .bind("email", person.getEmail().getVal())
                         .bind("phone", person.getPhone())
@@ -62,13 +87,6 @@ public class PersonDaoFluentStyle implements PersonDao {
                     .map(PersonMapper.INSTANCE).list();
         }
         return persons;
-    }
-
-    @Override
-    public void deleteById(long id) {
-        try (Handle h = dbi.open()) {
-            h.createStatement("delete from PERSON where person_id = :id").bind("id", id).execute();
-        }
     }
 
     public List<Person> findByName(String name) {

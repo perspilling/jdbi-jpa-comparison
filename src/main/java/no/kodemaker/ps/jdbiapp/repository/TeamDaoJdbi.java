@@ -27,7 +27,7 @@ public class TeamDaoJdbi implements TeamDao {
     // Let DBI manage the db connections
     private TeamDao teamDao = dbi.onDemand(TeamDao.class);
     private TeamPersonDao teamPersonDao = dbi.onDemand(TeamPersonDao.class); // team->person mapping table
-    private PersonDao personDaoJdbi = dbi.onDemand(PersonDaoJdbi.class);
+    private PersonDao personDaoJdbi = new PersonDaoJdbi();
 
     public TeamDaoJdbi() {
     }
@@ -45,15 +45,36 @@ public class TeamDaoJdbi implements TeamDao {
     }
 
     @Override
-    public void resetTable() {
-        dropTable();
-        createTable();
-    }
+    public Team save(final Team team) {
+        if (team.getId() == null) {
+            long id = insert(team);
+            return get(id);
+        }
 
-    public long insert(final Team team) {
         /**
          * Must update 2 tables here, so will do this in a transaction
          */
+        return dbi.inTransaction(new TransactionCallback<Team>() {
+            @Override
+            public Team inTransaction(Handle conn, TransactionStatus status) throws Exception {
+                if (team.getPointOfContact() != null) {
+                    teamDao.updateWithPoC(team);
+                } else {
+                    teamDao.updateWithoutPoC(team);
+                }
+                for (Person p : team.getMembers()) {
+                    // update the team->person mapping table
+                    TeamPerson tp = new TeamPerson(team.getId(), p.getId());
+                    if (!teamPersonDao.findByTeamId(team.getId()).contains(tp)) {
+                        teamPersonDao.insert(tp);
+                    }
+                }
+                return get(team.getId());
+            }
+        });
+    }
+
+    private long insert(final Team team) {
         return dbi.inTransaction(new TransactionCallback<Long>() {
             @Override
             public Long inTransaction(Handle conn, TransactionStatus status) throws Exception {
@@ -73,30 +94,6 @@ public class TeamDaoJdbi implements TeamDao {
     }
 
     @Override
-    public long save(final Team team) {
-        if (team.getId() == null) return insert(team);
-
-        return dbi.inTransaction(new TransactionCallback<Long>() {
-            @Override
-            public Long inTransaction(Handle conn, TransactionStatus status) throws Exception {
-                if (team.getPointOfContact() != null) {
-                    teamDao.updateWithPoC(team);
-                } else {
-                    teamDao.updateWithoutPoC(team);
-                }
-                for (Person p : team.getMembers()) {
-                    // update the team->person mapping table
-                    TeamPerson tp = new TeamPerson(team.getId(), p.getId());
-                    if (!teamPersonDao.findByTeamId(team.getId()).contains(tp)) {
-                        teamPersonDao.insert(tp);
-                    }
-                }
-                return team.getId();
-            }
-        });
-    }
-
-    @Override
     public Team get(Long pk) {
         Team team = teamDao.get(pk);
         getTeamMembers(team, teamPersonDao, personDaoJdbi);
@@ -110,12 +107,30 @@ public class TeamDaoJdbi implements TeamDao {
         }
     }
 
+    @Override
     public List<Team> getAll() {
         List<Team> teams = teamDao.getAll();
         for (Team t : teams) {
             getTeamMembers(t, teamPersonDao, personDaoJdbi);
         }
         return teams;
+    }
+
+    @Override
+    public boolean exists(Long id) {
+        return get(id) != null;
+    }
+
+    @Override
+    public void delete(Long id) {
+        // delete associated entries from TEAM and TEAM_PERSON tables, but not from the PERSON table
+        Team team = get(id);
+        if (team == null) return;
+
+        for (Person p : team.getMembers()) {
+            teamPersonDao.delete(new TeamPerson(team.getId(), p.getId()));
+        }
+        teamDao.delete(team.getId());
     }
 
     /**
@@ -128,19 +143,19 @@ public class TeamDaoJdbi implements TeamDao {
 
         final static String createTeamPersonMappingTableSql =
                 "create table TEAM_PERSON (" +
-                        "team_id integer REFERENCES TEAM, " +
-                        "person_id integer REFERENCES PERSON, " +
-                        "PRIMARY KEY (team_id, person_id) );";
+                        "teamId integer REFERENCES TEAM, " +
+                        "personId integer REFERENCES PERSON, " +
+                        "PRIMARY KEY (teamId, personId) );";
 
 
-        @SqlUpdate("insert into TEAM_PERSON (team_id, person_id) values (:tp.teamId, :tp.personId)")
+        @SqlUpdate("insert into TEAM_PERSON (teamId, personId) values (:tp.teamId, :tp.personId)")
         @GetGeneratedKeys
         long insert(@BindBean("tp") TeamPerson teamPerson);
 
-        @SqlQuery("select * from TEAM_PERSON where team_id = :teamId")
+        @SqlQuery("select * from TEAM_PERSON where teamId = :teamId")
         List<TeamPerson> findByTeamId(@Bind("teamId") Long teamId);
 
-        @SqlUpdate("delete from TEAM where team_id = :tp.teamId and person_id = :tp.personId")
+        @SqlUpdate("delete from TEAM where teamId = :tp.teamId and personId = :tp.personId")
         void delete(@BindBean("tp") TeamPerson teamPerson);
     }
 
@@ -153,26 +168,26 @@ public class TeamDaoJdbi implements TeamDao {
 
         String createTeamTableSql_postgres =
                 "create table TEAM (" +
-                        "team_id serial PRIMARY KEY, " +
+                        "teamId serial PRIMARY KEY, " +
                         "name varchar(80) NOT NULL, " +
-                        "poc_person_id integer REFERENCES PERSON (person_id), " +
+                        "pocPersonId integer REFERENCES PERSON (personId), " +
                         "unique(name))";
 
-        @SqlUpdate("insert into TEAM (team_id, name, poc_person_id) values (default, :t.name, :t.pointOfContactId)")
+        @SqlUpdate("insert into TEAM (teamId, name, pocPersonId) values (default, :t.name, :t.pointOfContactId)")
         @GetGeneratedKeys
         long insertWithPoC(@BindBean("t") Team team);
 
-        @SqlUpdate("insert into TEAM (team_id, name, poc_person_id) values (default, :t.name)")
+        @SqlUpdate("insert into TEAM (teamId, name, pocPersonId) values (default, :t.name)")
         @GetGeneratedKeys
         long insertWithoutPoC(@BindBean("t") Team team);
 
-        @SqlUpdate("update TEAM set name = :t.name,  poc_person_id = :t.pointOfContactId where team_id = :t.id")
+        @SqlUpdate("update TEAM set name = :t.name,  pocPersonId = :t.pointOfContactId where teamId = :t.id")
         void updateWithPoC(@BindBean("t") Team team);
 
-        @SqlUpdate("update TEAM set name = :t.name where team_id = :t.id")
+        @SqlUpdate("update TEAM set name = :t.name where teamId = :t.id")
         void updateWithoutPoC(@BindBean("t") Team team);
 
-        @SqlQuery("select * from TEAM where team_id = :id")
+        @SqlQuery("select * from TEAM where teamId = :id")
         Team get(@Bind("id") long id);
 
         @SqlQuery("select * from TEAM where name like :name")
@@ -181,7 +196,7 @@ public class TeamDaoJdbi implements TeamDao {
         @SqlQuery("select * from TEAM")
         List<Team> getAll();
 
-        @SqlUpdate("delete from TEAM where team_id = :id")
-        void deleteById(@Bind("id") long id);
+        @SqlUpdate("delete from TEAM where teamId = :id")
+        void delete(@Bind("id") long id);
     }
 }

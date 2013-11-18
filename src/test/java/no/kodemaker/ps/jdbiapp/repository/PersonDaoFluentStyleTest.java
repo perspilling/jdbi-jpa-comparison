@@ -22,16 +22,15 @@ public class PersonDaoFluentStyleTest {
 
     @BeforeClass
     public static void initDb() {
-        JdbiHelper jdbiHelper = new JdbiHelper();
-        dao = new PersonDaoFluentStyle(jdbiHelper.getDBI());
-        // the table name and create table sql is specified in the PersonDaoJdbi class
-        jdbiHelper.resetTable(PersonDaoJdbi.TABLE_NAME, PersonDaoJdbi.createPersonTableSql_postgres);
+        dao = new PersonDaoFluentStyle(new JdbiHelper().getDBI());
+        dao.dropTable();
+        dao.createTable();
         DbSeeder.initPersonTable(dao);
     }
 
     @Test
     public void shouldNotFindNonExistingPerson() {
-        Person person2 = dao.get(100);
+        Person person2 = dao.get(100L);
         assertNull(person2);
     }
 

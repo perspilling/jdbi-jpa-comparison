@@ -5,13 +5,14 @@ package no.kodemaker.ps.jdbiapp.domain;
  *
  * @author Per Spilling
  */
-public class Person extends Entity {
+public class Person extends EntityWithLongId {
     // required fields
     private String name;
     private Email email;
 
     // optional fields
     private String phone;
+    private Address homeAddress;
 
     public Person(String name, Email email) {
         validateName(name);
@@ -71,6 +72,14 @@ public class Person extends Entity {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public Address getHomeAddress() {
+        return homeAddress;
+    }
+
+    public void setHomeAddress(Address homeAddress) {
+        this.homeAddress = homeAddress;
     }
 
     @Override

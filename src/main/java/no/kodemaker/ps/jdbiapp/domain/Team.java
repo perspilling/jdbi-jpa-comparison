@@ -5,11 +5,11 @@ import com.google.common.collect.Lists;
 import java.util.List;
 
 /**
- * Entity class for a team. Schema is defined in {@link no.kodemaker.ps.jdbiapp.repository.TeamDaoJdbi}.
+ * Entity class for a team. The associated DAO class is {@link no.kodemaker.ps.jdbiapp.repository.TeamDaoJdbi}.
  *
  * @author Per Spilling
  */
-public class Team extends Entity {
+public class Team extends EntityWithLongId {
     // required fields
     private String name;
 

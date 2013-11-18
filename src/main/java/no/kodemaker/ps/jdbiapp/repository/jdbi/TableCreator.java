@@ -6,5 +6,4 @@ package no.kodemaker.ps.jdbiapp.repository.jdbi;
 public interface TableCreator {
     void createTable();
     void dropTable();
-    void resetTable();
 }
