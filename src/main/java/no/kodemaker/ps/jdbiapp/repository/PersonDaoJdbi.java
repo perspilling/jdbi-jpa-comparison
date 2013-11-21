@@ -3,10 +3,14 @@ package no.kodemaker.ps.jdbiapp.repository;
 import no.kodemaker.ps.jdbiapp.domain.Address;
 import no.kodemaker.ps.jdbiapp.domain.Person;
 import no.kodemaker.ps.jdbiapp.repository.jdbi.JdbiHelper;
+import no.kodemaker.ps.jdbiapp.repository.jdbi.SpringDBIFactoryBean;
+import no.kodemaker.ps.jdbiapp.repository.jdbi.TableCreator;
+import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.sqlobject.*;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 
+import javax.inject.Named;
 import java.util.List;
 
 /**
@@ -14,29 +18,43 @@ import java.util.List;
  *
  * @author Per Spilling
  */
-public class PersonDaoJdbi implements PersonDao {
+@Named
+public class PersonDaoJdbi implements PersonDao, TableCreator {
     private PersonDao personDao;
     private PersonAddressDao personAddressDao;
-    private AddressDao addressDao;
+    private AddressDaoJdbi addressDao;
     private JdbiHelper jdbiHelper;
 
     public PersonDaoJdbi() {
         jdbiHelper = new JdbiHelper();
-        personDao = jdbiHelper.getDBI().onDemand(PersonDao.class);
-        personAddressDao = jdbiHelper.getDBI().onDemand(PersonAddressDao.class);
+        init(jdbiHelper.getDBI());
+    }
+
+    // used with Spring
+    public PersonDaoJdbi(SpringDBIFactoryBean dbiFactoryBean) {
+        DBI dbi = dbiFactoryBean.getDBI();
+        jdbiHelper = new JdbiHelper(dbi);
+        init(dbi);
+    }
+
+    private void init(DBI dbi) {
+        personDao = dbi.onDemand(PersonDao.class);
+        personAddressDao = dbi.onDemand(PersonAddressDao.class);
         addressDao = new AddressDaoJdbi();
     }
 
     @Override
     public void createTable() {
-        jdbiHelper.createTableIfNotPresent(PersonDao.TABLE_NAME, PersonDao.createTableSql_postgres);
-        jdbiHelper.createTableIfNotPresent(PersonAddressDao.TABLE_NAME, PersonAddressDao.createTableSql_postgres);
+        jdbiHelper.createTableIfNotExist(PersonDao.TABLE_NAME, PersonDao.createTableSql_postgres);
+        addressDao.createTable();
+        jdbiHelper.createTableIfNotExist(PersonAddressDao.TABLE_NAME, PersonAddressDao.createTableSql_postgres);
     }
 
     @Override
     public void dropTable() {
-        jdbiHelper.dropTableIfNotPresent(PersonDao.TABLE_NAME);
-        jdbiHelper.dropTableIfNotPresent(PersonAddressDao.TABLE_NAME);
+        jdbiHelper.dropTableIfExist(PersonAddressDao.TABLE_NAME);
+        jdbiHelper.dropTableIfExist(PersonDao.TABLE_NAME);
+        addressDao.dropTable();
     }
 
     /**
@@ -121,6 +139,13 @@ public class PersonDaoJdbi implements PersonDao {
 
     @Override
     public void delete(Long id) {
+        // cascade delete homeAddress if exist
+        Person p = get(id);
+        if (p.getHomeAddress() != null) {
+            // first delete from the association table, then from the address table
+            personAddressDao.delete(new PersonAddressAssoc(p.getId(), p.getHomeAddress().getId()));
+            addressDao.delete(p.getHomeAddress().getId());
+        }
         personDao.deleteById(id);
     }
 
@@ -183,7 +208,7 @@ public class PersonDaoJdbi implements PersonDao {
         @SqlQuery("select * from PERSON_ADDRESS where personId = :personId")
         List<PersonAddressAssoc> findByPersonId(@Bind("personId") Long personId);
 
-        @SqlUpdate("delete from TEAM where personId = :pa.personId and addressId = :pa.addressId")
+        @SqlUpdate("delete from PERSON_ADDRESS where personId = :pa.personId and addressId = :pa.addressId")
         void delete(@BindBean("pa") PersonAddressAssoc personAddressAssoc);
     }
 }

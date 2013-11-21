@@ -15,7 +15,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class TeamDaoTest {
     private static TeamDao teamDao;
-    private static PersonDao personDao;
+    private static PersonDaoJdbi personDao;
 
     @BeforeClass
     public static void initDb() {

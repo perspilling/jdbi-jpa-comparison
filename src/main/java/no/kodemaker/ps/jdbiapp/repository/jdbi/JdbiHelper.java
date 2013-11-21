@@ -17,19 +17,27 @@ public class JdbiHelper {
     public enum DbType {H2, Postgres}
 
     private DbType dbType;
+    private DBI dbi;
 
     public JdbiHelper() {
         dbType = DbType.valueOf(DbProperties.DB_TYPE.val());
     }
 
+    // used with Spring
+    public JdbiHelper(DBI dbi) {
+        this.dbi = dbi;
+    }
+
     public DBI getDBI() {
+        if (dbi != null) return dbi;
+
         if (dbType == DbType.H2) {
             JdbcConnectionPool jdbcConnectionPool =
                     JdbcConnectionPool.create(
                             DbProperties.DB_URL.val(),
                             DbProperties.DB_USERNAME.val(),
                             DbProperties.DB_PASSWORD.val());
-            return new DBI(jdbcConnectionPool);
+            dbi = new DBI(jdbcConnectionPool);
         } else {
             try {
                 DriverManager.registerDriver(new org.postgresql.Driver());
@@ -41,10 +49,10 @@ public class JdbiHelper {
                 e.printStackTrace();
             }
         }
-        return null;
+        return dbi;
     }
 
-    public void createTableIfNotPresent(String tableName, String createTableSql) {
+    public void createTableIfNotExist(String tableName, String createTableSql) {
         try {
             DBI dbi = getDBI();
             DatabaseMetaData dbm = dbi.open().getConnection().getMetaData();
@@ -59,7 +67,7 @@ public class JdbiHelper {
         }
     }
 
-    public void dropTableIfNotPresent(String tableName) {
+    public void dropTableIfExist(String tableName) {
         DBI dbi = getDBI();
         Handle handle = dbi.open();
         if (dbType == DbType.H2) {

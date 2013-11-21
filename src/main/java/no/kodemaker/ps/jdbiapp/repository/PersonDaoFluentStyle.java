@@ -1,6 +1,7 @@
 package no.kodemaker.ps.jdbiapp.repository;
 
 import no.kodemaker.ps.jdbiapp.domain.Person;
+import no.kodemaker.ps.jdbiapp.repository.jdbi.TableCreator;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.LongMapper;
@@ -12,7 +13,7 @@ import java.util.List;
  *
  * @author Per Spilling
  */
-public class PersonDaoFluentStyle implements PersonDao {
+public class PersonDaoFluentStyle implements PersonDao, TableCreator {
 
     private DBI dbi;
     private PersonDaoJdbi personDaoJdbi;

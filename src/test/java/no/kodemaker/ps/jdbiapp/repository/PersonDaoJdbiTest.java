@@ -1,5 +1,6 @@
 package no.kodemaker.ps.jdbiapp.repository;
 
+import no.kodemaker.ps.jdbiapp.domain.Address;
 import no.kodemaker.ps.jdbiapp.domain.Email;
 import no.kodemaker.ps.jdbiapp.domain.Person;
 import org.junit.BeforeClass;
@@ -16,75 +17,101 @@ import static org.junit.Assert.*;
  */
 public class PersonDaoJdbiTest {
 
-    private static PersonDaoJdbi dao = new PersonDaoJdbi();
+    private static PersonDaoJdbi personDao = new PersonDaoJdbi();
+    private static AddressDaoJdbi addressDao = new AddressDaoJdbi();
 
     @BeforeClass
     public static void init() {
-        dao.dropTable();
-        dao.createTable();
-        DbSeeder.initPersonTable(dao);
+        personDao.dropTable();  // will also drop the address table
+        personDao.createTable(); // will also create the address table
+        DbSeeder.initPersonTable(personDao);
     }
 
     @Test
     public void shouldNotFindNonExistingPerson() {
-        Person p = dao.get(100L);
+        Person p = personDao.get(100L);
         assertNull(p);
     }
 
     @Test
     public void saveShouldUpdatePrimaryKey() {
-        Person p = dao.save(new Person("Albert Einstein", new Email("albert@nomail.com")));
-        assertTrue(p.getId() != null);
+        createAlbertIfNotExist();
+        Person albert = personDao.findByName("Albert Einstein").get(0);
+        assertTrue(albert.getId() != null);
+    }
+
+    private void createAlbertIfNotExist() {
+        if (personDao.findByName("Albert Einstein").size() == 0) {
+            personDao.save(new Person("Albert Einstein", new Email("albert@nomail.com")));
+        }
+    }
+
+    @Test
+    public void deleteShouldDeleteDependentAddress() {
+        createAlbertIfNotExist();
+        Person albert = personDao.findByName("Albert Einstein").get(0);
+        albert.setHomeAddress(new Address()
+                .setStreetAddress("Princeton Avenue 1")
+                .setPostalCode("42356")
+                .setPostalPlace("Princeton"));
+
+        albert = personDao.save(albert);
+        Long addressId = albert.getHomeAddress().getId();
+        assertTrue(addressId != null);
+        assertTrue(addressDao.get(addressId) != null);
+
+        personDao.delete(albert.getId());
+        assertTrue(addressDao.get(addressId) == null);
     }
 
     @Test
     public void retrieveAll() {
-        List<Person> persons = dao.getAll();
+        List<Person> persons = personDao.getAll();
         assertTrue(persons.size() >= 5);
     }
 
     @Test
-    public void testDependantHomeAddress() {
-        Person person = dao.findByName("Per Spilling").get(0);
+    public void testDependentHomeAddress() {
+        Person person = personDao.findByName("Per Spilling").get(0);
         assertThat(person.getHomeAddress(), notNullValue());
         person.getHomeAddress().setPostalPlace("Oslo");
-        Person p = dao.save(person);
+        Person p = personDao.save(person);
         assertThat(p.getHomeAddress().getPostalPlace(), equalTo("Oslo"));
     }
 
     @Test
     public void testFinders() {
-        List<Person> persons = dao.findByName("Per%");
+        List<Person> persons = personDao.findByName("Per%");
         assertThat(persons.size(), equalTo(2));
 
-        persons = dao.findByName("Per Spilling");
+        persons = personDao.findByName("Per Spilling");
         assertThat(persons.size(), equalTo(1));
 
-        persons = dao.findByEmail("per@kodemaker.no");
+        persons = personDao.findByEmail("per@kodemaker.no");
         assertThat(persons.size(), equalTo(1));
     }
 
     @Test
     public void testDelete() {
-        List<Person> persons = dao.getAll();
+        List<Person> persons = personDao.getAll();
         int size = persons.size();
 
-        Person p = dao.save(new Person("John Doe", new Email("john@mail.com")));
-        persons = dao.getAll();
+        Person p = personDao.save(new Person("John Doe", new Email("john@mail.com")));
+        persons = personDao.getAll();
         assertThat(persons.size(), equalTo(size + 1));
 
-        dao.delete(p.getId());
-        persons = dao.getAll();
+        personDao.delete(p.getId());
+        persons = personDao.getAll();
         assertThat(persons.size(), equalTo(size));
     }
 
     @Test
     public void testUpdate() {
-        List<Person> persons = dao.getAll();
+        List<Person> persons = personDao.getAll();
         Person person = persons.get(0);
         person.setPhone("12345678");
-        dao.save(person);
-        Person updatedPerson = dao.get(person.getId());
+        personDao.save(person);
+        Person updatedPerson = personDao.get(person.getId());
         assertThat(person, equalTo(updatedPerson));
     }
 }

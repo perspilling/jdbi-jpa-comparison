@@ -34,14 +34,14 @@ public class TeamDaoJdbi implements TeamDao {
 
     @Override
     public void createTable() {
-        jdbiHelper.createTableIfNotPresent(TeamDao.TEAM_TABLE_NAME, TeamDao.createTeamTableSql_postgres);
-        jdbiHelper.createTableIfNotPresent(TeamPersonDao.TEAM_PERSON_TABLE_NAME, TeamPersonDao.createTeamPersonMappingTableSql);
+        jdbiHelper.createTableIfNotExist(TeamDao.TEAM_TABLE_NAME, TeamDao.createTeamTableSql_postgres);
+        jdbiHelper.createTableIfNotExist(TeamPersonDao.TEAM_PERSON_TABLE_NAME, TeamPersonDao.createTeamPersonMappingTableSql);
     }
 
     @Override
     public void dropTable() {
-        jdbiHelper.dropTableIfNotPresent(TeamDao.TEAM_TABLE_NAME);
-        jdbiHelper.dropTableIfNotPresent(TeamPersonDao.TEAM_PERSON_TABLE_NAME);
+        jdbiHelper.dropTableIfExist(TeamDao.TEAM_TABLE_NAME);
+        jdbiHelper.dropTableIfExist(TeamPersonDao.TEAM_PERSON_TABLE_NAME);
     }
 
     @Override

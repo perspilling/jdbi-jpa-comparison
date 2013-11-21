@@ -29,23 +29,26 @@ public class Address extends EntityWithLongId {
         return streetAddress;
     }
 
-    public void setStreetAddress(String streetAddress) {
+    public Address setStreetAddress(String streetAddress) {
         this.streetAddress = streetAddress;
+        return this;
     }
 
     public String getPostalCode() {
         return postalCode;
     }
 
-    public void setPostalCode(String postalCode) {
+    public Address setPostalCode(String postalCode) {
         this.postalCode = postalCode;
+        return this;
     }
 
     public String getPostalPlace() {
         return postalPlace;
     }
 
-    public void setPostalPlace(String postalPlace) {
+    public Address setPostalPlace(String postalPlace) {
         this.postalPlace = postalPlace;
+        return this;
     }
 }

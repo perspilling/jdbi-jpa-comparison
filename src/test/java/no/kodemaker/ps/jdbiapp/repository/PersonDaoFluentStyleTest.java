@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class PersonDaoFluentStyleTest {
 
-    private static PersonDao dao;
+    private static PersonDaoFluentStyle dao;
 
     @BeforeClass
     public static void initDb() {

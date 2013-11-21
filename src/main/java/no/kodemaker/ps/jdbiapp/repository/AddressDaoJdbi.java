@@ -2,6 +2,7 @@ package no.kodemaker.ps.jdbiapp.repository;
 
 import no.kodemaker.ps.jdbiapp.domain.Address;
 import no.kodemaker.ps.jdbiapp.repository.jdbi.JdbiHelper;
+import no.kodemaker.ps.jdbiapp.repository.jdbi.TableCreator;
 import org.skife.jdbi.v2.sqlobject.*;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
@@ -11,7 +12,7 @@ import java.util.List;
 /**
  * @author Per Spilling
  */
-public class AddressDaoJdbi implements AddressDao {
+public class AddressDaoJdbi implements AddressDao, TableCreator {
     public static String TABLE_NAME = "ADDRESS";
 
     public static String createAddressTableSql_postgres =
@@ -22,9 +23,22 @@ public class AddressDaoJdbi implements AddressDao {
                     "postalPlace varchar(50) NOT NULL)";
 
     private AddressDao addressDao;
+    private JdbiHelper jdbiHelper;
+
 
     public AddressDaoJdbi() {
-        addressDao = new JdbiHelper().getDBI().onDemand(AddressDao.class);
+        jdbiHelper = new JdbiHelper();
+        addressDao = jdbiHelper.getDBI().onDemand(AddressDao.class);
+    }
+
+    @Override
+    public void createTable() {
+        jdbiHelper.createTableIfNotExist(TABLE_NAME, createAddressTableSql_postgres);
+    }
+
+    @Override
+    public void dropTable() {
+        jdbiHelper.dropTableIfExist(TABLE_NAME);
     }
 
     @Override
