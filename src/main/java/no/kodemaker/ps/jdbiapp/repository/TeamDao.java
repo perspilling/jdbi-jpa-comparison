@@ -6,5 +6,6 @@ import no.kodemaker.ps.jdbiapp.repository.jdbi.TableCreator;
 /**
  * @author Per Spilling
  */
-public interface TeamDao extends CrudDao<Team, Long>, TableCreator {
+public interface TeamDao extends CrudDao<Team>, TableCreator {
+    Team findByName(String name);
 }

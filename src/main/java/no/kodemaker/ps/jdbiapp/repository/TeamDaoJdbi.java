@@ -51,12 +51,13 @@ public class TeamDaoJdbi implements TeamDao {
             return get(id);
         }
 
-        /**
-         * Must update 2 tables here, so will do this in a transaction
-         */
-        return dbi.inTransaction(new TransactionCallback<Team>() {
+        // Must update 2 tables here, so will do this in a transaction
+        dbi.inTransaction(new TransactionCallback<Long>() {
             @Override
-            public Team inTransaction(Handle conn, TransactionStatus status) throws Exception {
+            public Long inTransaction(Handle conn, TransactionStatus status) throws Exception {
+                // attach the dao's to the same handle
+                TeamDao teamDao = conn.attach(TeamDao.class);
+                TeamPersonDao teamPersonDao = conn.attach(TeamPersonDao.class);
                 if (team.getPointOfContact() != null) {
                     teamDao.updateWithPoC(team);
                 } else {
@@ -69,9 +70,11 @@ public class TeamDaoJdbi implements TeamDao {
                         teamPersonDao.insert(tp);
                     }
                 }
-                return get(team.getId());
+                return team.getId();
             }
         });
+        // the get must be done after the tx has been committed
+        return get(team.getId());
     }
 
     private long insert(final Team team) {
@@ -79,6 +82,8 @@ public class TeamDaoJdbi implements TeamDao {
             @Override
             public Long inTransaction(Handle conn, TransactionStatus status) throws Exception {
                 long teamId;
+                TeamDao teamDao = conn.attach(TeamDao.class);
+                TeamPersonDao teamPersonDao = conn.attach(TeamPersonDao.class);
                 if (team.getPointOfContact() != null) {
                     teamId = teamDao.insertWithPoC(team);
                 } else {
@@ -93,6 +98,85 @@ public class TeamDaoJdbi implements TeamDao {
         });
     }
 
+    public Team insertWithTxAnnotations(final Team team) {
+        // in this case we use an explicit handle, and attach the dao's to the same handle (connection)
+        try (Handle handle = jdbiHelper.getTxHandle()) {
+            handle.begin();
+            TeamDao teamDao = handle.attach(TeamDao.class);
+            TeamPersonDao teamPersonDao = handle.attach(TeamPersonDao.class); // team->person mapping table
+
+            long teamId;
+            if (team.getPointOfContact() != null) {
+                teamId = teamDao.insertWithPoC(team);
+            } else {
+                teamId = teamDao.insertWithoutPoC(team);
+            }
+            for (Person p : team.getMembers()) {
+                // update the team->person mapping table
+                teamPersonDao.insert(new TeamPerson(teamId, p.getId()));
+            }
+            handle.commit();
+            return get(teamId);
+        }
+    }
+
+    /**
+     * This method is used to test that the transaction handling is working as expected, i.e.
+     * the inserts should be rolled back when the exception occurs.
+     */
+    public Team insertWithTxAnnotationsFailing(final Team team) {
+        // in this case we use an explicit handle, and attach the dao's to the same handle (connection)
+        try (Handle handle = jdbiHelper.getTxHandle()) {
+            handle.begin();
+            TeamDao teamDao = handle.attach(TeamDao.class);
+            TeamPersonDao teamPersonDao = handle.attach(TeamPersonDao.class); // team->person mapping table
+
+            long teamId;
+            if (team.getPointOfContact() != null) {
+                teamId = teamDao.insertWithPoC(team);
+            } else {
+                teamId = teamDao.insertWithoutPoC(team);
+            }
+            for (Person p : team.getMembers()) {
+                // update the team->person mapping table
+                teamPersonDao.insert(new TeamPerson(teamId, p.getId()));
+            }
+            teamDao.failingMethod(); // should cause the TX to be rolled back
+            handle.commit();
+            return get(teamId);
+        }
+    }
+
+    /**
+     * This method is used to test that the transaction handling is working as expected, i.e.
+     * the inserts should be rolled back when the exception occurs.
+     */
+    public Team insertWithTxFailing(final Team team) {
+        // in this case we use an explicit handle, and attach the dao's to the same handle (connection)
+        Long teamId = dbi.inTransaction(new TransactionCallback<Long>() {
+            @Override
+            public Long inTransaction(Handle handle, TransactionStatus status) throws Exception {
+                long teamId;
+                TeamDao teamDao = handle.attach(TeamDao.class);
+                TeamPersonDao teamPersonDao = handle.attach(TeamPersonDao.class);
+                if (team.getPointOfContact() != null) {
+                    teamId = teamDao.insertWithPoC(team);
+                } else {
+                    teamId = teamDao.insertWithoutPoC(team);
+                }
+                for (Person p : team.getMembers()) {
+                    // update the team->person mapping table
+                    teamPersonDao.insert(new TeamPerson(teamId, p.getId()));
+                }
+                teamDao.failingMethod(); // should cause the TX to be rolled back
+                return teamId;
+            }
+        });
+        // the get must be done after the tx has been committed
+        return get(teamId);
+    }
+
+
     @Override
     public Team get(Long pk) {
         Team team = teamDao.get(pk);
@@ -104,6 +188,16 @@ public class TeamDaoJdbi implements TeamDao {
         List<TeamPerson> teamPersonList = teamPersonDao.findByTeamId(team.getId());
         for (TeamPerson tp : teamPersonList) {
             team.addMember(personDao.get(tp.getPersonId()));
+        }
+    }
+
+    @Override
+    public Team findByName(String name) {
+        List<Team> teamList = teamDao.findByName(name);
+        if (teamList.size() > 0) {
+            return get(teamList.get(0).getId());
+        } else {
+            return null;
         }
     }
 
@@ -150,12 +244,14 @@ public class TeamDaoJdbi implements TeamDao {
 
         @SqlUpdate("insert into TEAM_PERSON (teamId, personId) values (:tp.teamId, :tp.personId)")
         @GetGeneratedKeys
+        @Transaction
         long insert(@BindBean("tp") TeamPerson teamPerson);
 
         @SqlQuery("select * from TEAM_PERSON where teamId = :teamId")
         List<TeamPerson> findByTeamId(@Bind("teamId") Long teamId);
 
         @SqlUpdate("delete from TEAM where teamId = :tp.teamId and personId = :tp.personId")
+        @Transaction
         void delete(@BindBean("tp") TeamPerson teamPerson);
     }
 
@@ -163,10 +259,10 @@ public class TeamDaoJdbi implements TeamDao {
      * Generated JDBI DAO for the {@link Team} class.
      */
     @RegisterMapper(TeamMapper.class)
-    interface TeamDao extends Transactional<TeamDao> {
-        String TEAM_TABLE_NAME = "TEAM";
+    static abstract class TeamDao {
+        static String TEAM_TABLE_NAME = "TEAM";
 
-        String createTeamTableSql_postgres =
+        static String createTeamTableSql_postgres =
                 "create table TEAM (" +
                         "teamId serial PRIMARY KEY, " +
                         "name varchar(80) NOT NULL, " +
@@ -175,28 +271,38 @@ public class TeamDaoJdbi implements TeamDao {
 
         @SqlUpdate("insert into TEAM (teamId, name, pocPersonId) values (default, :t.name, :t.pointOfContactId)")
         @GetGeneratedKeys
-        long insertWithPoC(@BindBean("t") Team team);
+        @Transaction
+        abstract long insertWithPoC(@BindBean("t") Team team);
 
         @SqlUpdate("insert into TEAM (teamId, name, pocPersonId) values (default, :t.name)")
         @GetGeneratedKeys
-        long insertWithoutPoC(@BindBean("t") Team team);
+        @Transaction
+        abstract long insertWithoutPoC(@BindBean("t") Team team);
 
         @SqlUpdate("update TEAM set name = :t.name,  pocPersonId = :t.pointOfContactId where teamId = :t.id")
-        void updateWithPoC(@BindBean("t") Team team);
+        @Transaction
+        abstract void updateWithPoC(@BindBean("t") Team team);
 
         @SqlUpdate("update TEAM set name = :t.name where teamId = :t.id")
-        void updateWithoutPoC(@BindBean("t") Team team);
+        @Transaction
+        abstract void updateWithoutPoC(@BindBean("t") Team team);
 
         @SqlQuery("select * from TEAM where teamId = :id")
-        Team get(@Bind("id") long id);
+        abstract Team get(@Bind("id") long id);
 
         @SqlQuery("select * from TEAM where name like :name")
-        List<Team> findByName(@Bind("name") String name);
+        abstract List<Team> findByName(@Bind("name") String name);
 
         @SqlQuery("select * from TEAM")
-        List<Team> getAll();
+        abstract List<Team> getAll();
 
         @SqlUpdate("delete from TEAM where teamId = :id")
-        void delete(@Bind("id") long id);
+        @Transaction
+        abstract void delete(@Bind("id") long id);
+
+        @Transaction
+        void failingMethod() {
+            throw new IllegalStateException("In failingMethod");
+        }
     }
 }

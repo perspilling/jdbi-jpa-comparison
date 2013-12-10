@@ -13,7 +13,7 @@ import java.util.List;
  * @author Per Spilling
  */
 public class AddressDaoJdbi implements AddressDao, TableCreator {
-    public static String TABLE_NAME = "ADDRESS";
+    public static String tableName = "ADDRESS";
 
     public static String createAddressTableSql_postgres =
             "create table ADDRESS (" +
@@ -33,12 +33,12 @@ public class AddressDaoJdbi implements AddressDao, TableCreator {
 
     @Override
     public void createTable() {
-        jdbiHelper.createTableIfNotExist(TABLE_NAME, createAddressTableSql_postgres);
+        jdbiHelper.createTableIfNotExist(tableName, createAddressTableSql_postgres);
     }
 
     @Override
     public void dropTable() {
-        jdbiHelper.dropTableIfExist(TABLE_NAME);
+        jdbiHelper.dropTableIfExist(tableName);
     }
 
     @Override

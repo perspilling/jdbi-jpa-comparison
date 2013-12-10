@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @author Per Spilling
  */
-public interface PersonDao extends CrudDao<Person, Long>  {
+public interface PersonDao extends CrudDao<Person>  {
     List<Person> findByName(String name);
     List<Person> findByEmail(String email);
 }

@@ -12,12 +12,15 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Per Spilling
  */
-public class AddressDaoJdbiTest {
-    private AddressDaoJdbi dao = new AddressDaoJdbi();
+public class AddressDaoJdbi2Test {
+    private AddressDaoJdbi2 dao;
 
     @Before
-    public void init() {
-        new JdbiHelper().resetTable(AddressDaoJdbi.tableName, AddressDaoJdbi.createAddressTableSql_postgres);
+    public void setUp() {
+        JdbiHelper jdbiHelper = new JdbiHelper();
+        jdbiHelper.resetTable(AddressDaoJdbi.tableName, AddressDaoJdbi.createAddressTableSql_postgres);
+        dao = jdbiHelper.getDBI().onDemand(AddressDaoJdbi2.class);
+        //dao = jdbiHelper.getDBI().open().attach(AddressDaoJdbi2.class);
         dao.save(new Address("Storgata 22", "0123", "Oslo"));
         dao.save(new Address("Karl Johans gate 10", "0100", "Oslo"));
     }

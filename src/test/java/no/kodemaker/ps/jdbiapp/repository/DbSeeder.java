@@ -20,5 +20,9 @@ public class DbSeeder {
         dao.save(new Person("Neil Armstrong", new Email("armstrong@nomail.com")));
         dao.save(new Person("Edwin Aldrin", new Email("aldrin@nomail.com")));
         dao.save(new Person("Michael Collins", new Email("collins@nomail.com")));
+
+        dao.save(new Person("Superman", new Email("superman@nomail.com")));
+        dao.save(new Person("Spiderman", new Email("spiderman@nomail.com")));
+        dao.save(new Person("Batman", new Email("batman@nomail.com")));
     }
 }

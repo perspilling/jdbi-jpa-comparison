@@ -52,6 +52,20 @@ public class JdbiHelper {
         return dbi;
     }
 
+    /**
+     * Return a handle suitable for use in a transaction operation, i.e. with
+     * autoCommit = false.
+     */
+    public Handle getTxHandle() {
+        Handle handle = getDBI().open();
+        try {
+            handle.getConnection().setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Caught an SQLException. errorCode=" + e.getErrorCode());
+        }
+        return handle;
+    }
+
     public void createTableIfNotExist(String tableName, String createTableSql) {
         try {
             DBI dbi = getDBI();

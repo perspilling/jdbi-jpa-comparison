@@ -59,7 +59,6 @@ public class PersonDaoJdbi implements PersonDao, TableCreator {
 
     /**
      * Insert or update the person table and its associated address table if the person has a homeAddress.
-     * @param person
      * @return the saved person instance
      */
     @Override
@@ -97,10 +96,10 @@ public class PersonDaoJdbi implements PersonDao, TableCreator {
 
     @Override
     public Person get(Long id) {
-        return getHomeAddressIfExist(personDao.get(id));
+        return getPersonWithAddress(personDao.get(id));
     }
 
-    private Person getHomeAddressIfExist(Person person) {
+    private Person getPersonWithAddress(Person person) {
         if (person == null) return null;
         List<PersonAddressAssoc> personAddressAssocList = personAddressDao.findByPersonId(person.getId());
         if (personAddressAssocList.size() == 1) {
@@ -109,27 +108,27 @@ public class PersonDaoJdbi implements PersonDao, TableCreator {
         return person;
     }
 
-    private List<Person> getHomeAddressIfExist(List<Person> persons) {
+    private List<Person> getPersonsWithAddress(List<Person> persons) {
         if (persons == null) return null;
         for (Person p : persons) {
-            getHomeAddressIfExist(p);
+            getPersonWithAddress(p);
         }
         return persons;
     }
 
     @Override
     public List<Person> findByName(String name) {
-        return getHomeAddressIfExist(personDao.findByName(name));
+        return getPersonsWithAddress(personDao.findByName(name));
     }
 
     @Override
     public List<Person> findByEmail(String email) {
-        return getHomeAddressIfExist(personDao.findByEmail(email));
+        return getPersonsWithAddress(personDao.findByEmail(email));
     }
 
     @Override
     public List<Person> getAll() {
-        return getHomeAddressIfExist(personDao.getAll());
+        return getPersonsWithAddress(personDao.getAll());
     }
 
     @Override
